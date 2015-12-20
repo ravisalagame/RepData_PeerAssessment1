@@ -1,25 +1,113 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research_Peer Project 1"
+author: "Ravi Salagame"
+date: "December 20, 2015"
+output: html_document
 ---
 
+This is Peer assignment 1. The assignment is written in 4 parts. Each part has its associated R code and its outputs. This file is created in RStudio. Please see <http://rmarkdown.rstudio.com> for details. 
 
-## Loading and preprocessing the data
+--------
+**Part 1 : Loading and preprocessing the activity data. Variables are described below **
+  
+data1 : Original Data read by R code
+
+stepSum : Subset of data which contains Sum of steps for each day of the month  
+
+stepAve : Subset of data which contains Average of steps for each 5-min. interval  
+  
+-----
+
+```{r, echo=TRUE, tidy=FALSE}
+
+data1<-read.csv("activity.csv",header=TRUE)
+stepSum<-aggregate(data1$steps, by=list(Category=data1$date), FUN=sum)
+stepAve<-aggregate(data1$steps, by=list(Category=data1$interval), FUN=mean,na.rm=TRUE)
+
+```
+
+-----
+
+**Part 2 : What is the mean total number of steps taken per day? **
+
+----
+```{r, echo=TRUE,tidy=FALSE}
+
+meanX<-mean(stepSum$x,na.rm=TRUE)
+medianX<-median(stepSum$x,na.rm=TRUE)
+sprintf("Mean of Total # of Steps = %f", meanX)
+sprintf("Median of Total # of Steps = %f", medianX)
+hist(stepSum$x,main=paste("Histogram of total # of steps"),xlab="No. of steps")
+
+```
+
+------
+
+**Part 3 : What is the average daily activity pattern? **
+
+-------
+
+```{r, echo=TRUE,tidy=FALSE}
+
+rowInd<-which.max(stepAve$x)
+TimeStepMax<-stepAve$Category[rowInd]
+sprintf("5-minute Time Step Interval Containing Max Time Step = %i", TimeStepMax)
+plot(stepAve$Category,stepAve$x,type="l",xlab="Time Step",ylab="Average No. of steps")
+
+```
 
 
+------
 
-## What is mean total number of steps taken per day?
+**Part 4 : Imputing missing values **
 
+Imputing strategy used is to replace each NA by the mean of its corresponding 5-minute interval averaged overa all days
 
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
+stepAveDay : Average # of steps after Impute strategy  
 
 
+-------
 
-## Are there differences in activity patterns between weekdays and weekends?
+```{r, echo=TRUE,tidy=FALSE}
+
+no_NA<-sum(is.na(data1$steps))
+stepAveDay<-aggregate(data1$steps, by=list(Category=data1$date), FUN=mean,rm.na=TRUE)
+
+Ind<-match(data1$interval,stepAve$Category)
+for(i in 1:nrow(data1)){
+  if(is.na(data1$steps[i])) data1$steps[i]<-stepAve$x[Ind[i]]
+}
+stepSum1<-aggregate(data1$steps, by=list(Category=data1$date), FUN=sum)
+hist(stepSum1$x,main=paste("Histogram of total # of steps"),xlab="No. of steps")
+meanX_Imp<-mean(stepSum1$x,na.rm=TRUE)
+medianX_Imp<-median(stepSum1$x,na.rm=TRUE)
+sprintf("Mean of Total # of Steps = %f", meanX_Imp)
+sprintf("Median of Total # of Steps = %f", medianX_Imp)
+hist(stepSum1$x,main=paste("Histogram of total # of steps"),xlab="No. of steps")
+
+```
+
+------
+
+**Part 5 : Are there differences in activity patterns between weekdays and weekends? **
+
+-------
+
+```{r, echo=TRUE,tidy=FALSE}
+
+data1$date <- as.Date(data1$date)
+#create a vector of weekdays
+weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+#Use `%in%` and `weekdays` to create a logical vector
+#convert to `factor` and specify the `levels/labels`
+data1$wDay<-factor((weekdays(data1$date) %in% weekdays1),levels=c(FALSE, TRUE), labels=c('weekend', 'weekday')) 
+data1_Wkday<-subset(data1,wDay=='weekday')
+data1_Weekend<-subset(data1,wDay=='weekend')
+stepAve_Wkday<-aggregate(data1_Wkday$steps, by=list(Category=data1_Wkday$interval), FUN=mean,na.rm=TRUE)
+stepAve_Weekend<-aggregate(data1_Weekend$steps, by=list(Category=data1_Weekend$interval), FUN=mean,na.rm=TRUE)
+par(mfrow=c(2,1))
+par(cex=0.6)
+plot(stepAve_Wkday$Category,stepAve_Wkday$x,type="l",xlab="Time Step",ylab="Average No. of steps during weekday")
+plot(stepAve_Weekend$Category,stepAve_Weekend$x,type="l",xlab="Time Step",ylab="Average No. of steps during weekend")
+
+```
