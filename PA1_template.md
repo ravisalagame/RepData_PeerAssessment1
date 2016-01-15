@@ -1,4 +1,4 @@
-This is Peer assignment 1. The assignment is written in 4 parts. Each
+This is Peer assignment 1. This assignment is written in 4 parts. Each
 part has its associated R code and its outputs. This file is created in
 RStudio. Please see <http://rmarkdown.rstudio.com> for details.
 
